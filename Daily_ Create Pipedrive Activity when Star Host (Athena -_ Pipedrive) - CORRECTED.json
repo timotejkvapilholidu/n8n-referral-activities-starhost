@@ -1,0 +1,730 @@
+{
+  "name": "Daily: Create Pipedrive Activity when Star Host (Athena -> Pipedrive) - CORRECTED",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -624,
+        32
+      ],
+      "id": "sh-corr-0001",
+      "name": "Daily 9AM - Check for New Star Hosts"
+    },
+    {
+      "parameters": {
+        "function": "=arn:aws:lambda:eu-west-1:831753857064:function:n8n_run_query_athena_multivalue",
+        "invocationType": "=RequestResponse",
+        "payload": "={\n  \"athena_query\": \"WITH latest AS (SELECT MAX(DATE(report_date)) AS d FROM holidu_homes.account_model_history), lookback AS (SELECT MAX(DATE(report_date)) AS d FROM holidu_homes.account_model_history WHERE DATE(report_date) <= (SELECT d FROM latest) - INTERVAL '3' day), star_now AS (SELECT account_id FROM holidu_homes.account_model_history WHERE DATE(report_date) = (SELECT d FROM latest) AND is_active_account AND is_star_host), star_before AS (SELECT account_id FROM holidu_homes.account_model_history WHERE DATE(report_date) = (SELECT d FROM lookback) AND is_active_account AND is_star_host), candidates AS (SELECT sn.account_id FROM star_now sn LEFT JOIN star_before sb ON sn.account_id = sb.account_id WHERE sb.account_id IS NULL), became AS (SELECT amh.account_id, MIN(DATE(amh.report_date)) AS became_star_host_date FROM holidu_homes.account_model_history amh JOIN candidates c ON c.account_id = amh.account_id WHERE DATE(amh.report_date) > (SELECT d FROM lookback) AND DATE(amh.report_date) <= (SELECT d FROM latest) AND amh.is_active_account AND amh.is_star_host GROUP BY amh.account_id) SELECT DISTINCT c.account_id, b.became_star_host_date, agent.pipedrive_person_id AS person_id, agent.optimisation_deal_id AS deal_id FROM candidates c JOIN became b ON b.account_id = c.account_id LEFT JOIN holidu_homes.plp_latest plp ON c.account_id = plp.account_id LEFT JOIN holidu_homes.agent_latest agent ON CAST(plp.plp_id AS varchar) = CAST(agent.agent_id AS varchar) WHERE agent.pipedrive_person_id IS NOT NULL ORDER BY c.account_id\"\n}"
+      },
+      "type": "n8n-nodes-base.awsLambda",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        32
+      ],
+      "id": "sh-corr-0002",
+      "name": "Query Athena - Get New Star Hosts",
+      "credentials": {
+        "aws": {
+          "id": "cpV08J5w0X1D18Gy",
+          "name": "AWS n8n-lambda-invoker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the response from AWS Lambda\nconst responseBody = $input.first().json;\nconsole.log('Raw Lambda Response:', JSON.stringify(responseBody, null, 2));\n\n// Helper function to parse native Athena ResultSet row format\nfunction parseAthenaRows(resultSet) {\n  if (!resultSet || !resultSet.Rows || resultSet.Rows.length === 0) {\n    return [];\n  }\n  const rows = resultSet.Rows;\n  const columnNames = rows[0].Data.map(col => col.VarCharValue);\n  return rows.slice(1).map(row => {\n    const rowData = {};\n    row.Data.forEach((cell, index) => {\n      rowData[columnNames[index]] = cell.VarCharValue || null;\n    });\n    return rowData;\n  });\n}\n\nlet parsedRows = [];\n\nif (responseBody.ResultSet && responseBody.ResultSet.Rows) {\n  parsedRows = parseAthenaRows(responseBody.ResultSet);\n} else if (responseBody.data && Array.isArray(responseBody.data)) {\n  parsedRows = responseBody.data;\n} else if (responseBody.result && responseBody.result.body) {\n  const body = typeof responseBody.result.body === 'string'\n    ? JSON.parse(responseBody.result.body)\n    : responseBody.result.body;\n  if (body.rows && Array.isArray(body.rows)) parsedRows = body.rows;\n  else if (body.ResultSet) parsedRows = parseAthenaRows(body.ResultSet);\n  else if (body.data) parsedRows = body.data;\n} else if (responseBody.body) {\n  const body = typeof responseBody.body === 'string'\n    ? JSON.parse(responseBody.body)\n    : responseBody.body;\n  if (body.ResultSet) parsedRows = parseAthenaRows(body.ResultSet);\n  else if (body.data) parsedRows = body.data;\n  else if (body.rows) parsedRows = body.rows;\n} else if (Array.isArray(responseBody)) {\n  parsedRows = responseBody;\n}\n\nconsole.log(`Parsed ${parsedRows.length} rows`);\n\nif (parsedRows.length === 0) {\n  return [{ json: { rowCount: 0, message: 'No new star hosts detected' } }];\n}\n\nreturn parsedRows.map((row, index) => ({\n  json: {\n    ...row,\n    rowCount: parsedRows.length,\n    activity_subject: 'Star Host: Pitch Referral',\n    _debug_row_index: index + 1\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        32
+      ],
+      "id": "sh-corr-0003",
+      "name": "Parse Athena Results"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "rowcount-check",
+              "leftValue": "={{ $json.rowCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        32
+      ],
+      "id": "sh-corr-0004",
+      "name": "Any New Star Hosts Found?"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        288,
+        48
+      ],
+      "id": "sh-corr-0005",
+      "name": "Process Each Star Host One-by-One"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pipedrive.com/v1/deals/{{ $json.deal_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "pipedriveApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        512,
+        48
+      ],
+      "id": "sh-corr-0006",
+      "name": "Get Deal Owner",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "HxTsxT1IokYVRYfJ",
+          "name": "Pipedrive account Michael Siebers"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pull the deal owner straight from Pipedrive (live), not from Athena.\nconst hostData = $('Process Each Star Host One-by-One').item.json;\nconst dealResponse = $input.first().json;\n\nconst ownerId = dealResponse.data?.owner_id?.id || dealResponse.data?.user_id?.id || null;\n\nreturn {\n  json: {\n    ...hostData,\n    owner_id: ownerId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        48
+      ],
+      "id": "sh-corr-0007",
+      "name": "Extract Deal Owner"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pipedrive.com/v1/deals/{{ $json.deal_id }}/activities?limit=100",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "pipedriveApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        48
+      ],
+      "id": "sh-corr-0008",
+      "name": "Search for Duplicate Activity",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "HxTsxT1IokYVRYfJ",
+          "name": "Pipedrive account Michael Siebers"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dedup guard for this deal. Skip creating the activity if EITHER check matches.\n//   Check 1 (existing, UNCHANGED): a \"Star Host: Pitch Referral\" activity already exists on the deal.\n//   Check 2 (new): the deal has a DONE \"Referral reminder\" completed within the last 6 months\n//                  (the \"Referred Apartment(s) Published: Pitch Referral\" subject is exempt and never\n//                   blocks; a not-done \"Referral reminder\" never blocks via this check).\nconst hostData = $('Process Each Star Host One-by-One').item.json;\nconst ownerId = $('Extract Deal Owner').item.json.owner_id;\nconst expectedSubject = 'Star Host: Pitch Referral';\nconst dealId = hostData.deal_id;\n\nconst activitiesResponse = $input.first().json;\nconst allActivities = activitiesResponse.data || [];\n\nlet debugInfo = {\n  checking_deal: dealId,\n  expected_subject: expectedSubject,\n  total_activities_checked: allActivities.length,\n  duplicate_found: false,\n  should_skip: false\n};\n\n// --- Check 1 (existing logic, UNCHANGED): same-subject activity already on the deal ---\nconst matchingActivities = allActivities.filter(activity => {\n  if (!activity.subject) return false;\n  return activity.subject === expectedSubject;\n});\ndebugInfo.matching_activities_found = matchingActivities.length;\nconst existingDuplicate = matchingActivities.length > 0;\n\n// --- Check 2 (new): done \"Referral reminder\" completed within the last 6 months ---\nconst EXEMPT_SUBJECT = 'Referred Apartment(s) Published: Pitch Referral';\nconst normType = t => String(t || '').trim().toLowerCase().replace(/[\\s_]+/g, '_');\nconst sixMonthsAgo = new Date();\nsixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);\nconst doneReferralReminder = allActivities.some(a => {\n  if (normType(a.type) !== 'referral_reminder') return false;        // must be a Referral reminder\n  if (a.done !== true) return false;                                 // must be marked done\n  if (a.subject && a.subject.trim() === EXEMPT_SUBJECT) return false; // exempt subject never blocks\n  if (!a.marked_as_done_time) return false;                          // need a completion timestamp\n  return new Date(a.marked_as_done_time) >= sixMonthsAgo;            // marked done within last 6 months\n});\n\ndebugInfo.check1_existing_duplicate = existingDuplicate;\ndebugInfo.check2_done_referral_reminder = doneReferralReminder;\n\n// --- Final flag: skip if EITHER check matched ---\nconst shouldSkip = existingDuplicate || doneReferralReminder;\ndebugInfo.duplicate_found = shouldSkip;\ndebugInfo.should_skip = shouldSkip;\n\nif (shouldSkip) {\n  const reasons = [];\n  if (existingDuplicate) reasons.push('Check 1: a \"Star Host: Pitch Referral\" activity already exists on this deal');\n  if (doneReferralReminder) reasons.push('Check 2: a done \"Referral reminder\" was completed within the last 6 months');\n  debugInfo.action = 'SKIPPING - ' + reasons.join(' AND ');\n  debugInfo._duplicate_check = 'SKIP (' + reasons.join(' | ') + ')';\n  return { json: { ...hostData, owner_id: ownerId, _debug: debugInfo, _skip: true } };\n}\n\ndebugInfo.action = 'PROCEEDING - passed Check 1 (no same-subject activity) and Check 2 (no recent done referral reminder)';\ndebugInfo._duplicate_check = 'PROCEED: Check 1 (own subject) + Check 2 (done referral reminder within 6 months) both clear';\nreturn { json: { ...hostData, owner_id: ownerId, _debug: debugInfo, _skip: false } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        48
+      ],
+      "id": "sh-corr-0009",
+      "name": "Check Dedup: Star Host Pitch Referral or Done Referral Reminder"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "skip-condition",
+              "leftValue": "={{ $json._skip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        48
+      ],
+      "id": "sh-corr-0010",
+      "name": "Should Create Activity?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pipedrive.com/v1/activities",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "pipedriveApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subject",
+              "value": "Star Host: Pitch Referral"
+            },
+            {
+              "name": "type",
+              "value": "Referral reminder"
+            },
+            {
+              "name": "deal_id",
+              "value": "={{ $json.deal_id }}"
+            },
+            {
+              "name": "due_date",
+              "value": "={{ $now.plus(7, 'days').toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "note",
+              "value": "=This host became a Star Host on <b>{{ DateTime.fromISO(String($json.became_star_host_date).split(' ')[0]).toFormat('d LLL yyyy') }}</b>! This is a great opportunity to pitch a referral. Please reach out and leverage their positive experience to ask for referrals to other property owners.<br><br><b>Helpful links</b><ul><li><a href=\"https://holidu.atlassian.net/wiki/spaces/PMKT/pages/6250332719/Host+Referrals+Playbook\">Host Referrals Playbook</a></li><li><a href=\"https://holidu.atlassian.net/wiki/spaces/HKB/pages/6987776360/What+is+the+Star+Host+Program\">What is the Star Host Program?</a></li><li><a href=\"https://holidu.atlassian.net/wiki/spaces/SSO/pages/6728253964/Daily+Star+Host+-+Pitch+Referral+Workflow\">About this automated task (workflow documentation)</a></li></ul>"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $json.owner_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1632,
+        32
+      ],
+      "id": "sh-corr-0011",
+      "name": "Create 'Star Host: Pitch Referral' Activity",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "HxTsxT1IokYVRYfJ",
+          "name": "Pipedrive account Michael Siebers"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize the Pipedrive REST response into a clean success/error shape.\nconst response = $input.first().json;\n\nreturn {\n  json: {\n    success: response.success || false,\n    activity_id: response.data?.id || null,\n    error: response.error || null,\n    original_response: response\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        32
+      ],
+      "id": "sh-corr-0012",
+      "name": "Normalize Pipedrive Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        32
+      ],
+      "id": "sh-corr-0013",
+      "name": "Check Activity Creation Success"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#referral-errors",
+          "mode": "name"
+        },
+        "text": "=🔴 *Star Host Alert - Activity Creation Failed*\n\n*Account ID:* {{ $('Process Each Star Host One-by-One').item.json.account_id }}\n*Person ID:* {{ $('Process Each Star Host One-by-One').item.json.person_id }}\n*Became Star Host:* {{ $('Process Each Star Host One-by-One').item.json.became_star_host_date }}\n\n*Deal ID:* {{ $('Process Each Star Host One-by-One').item.json.deal_id }}\n\n*Failed Step:* Activity Creation\n*Error:* {{ $json.error?.message || $json.error || 'Unknown error' }}\n\n*Action Required:* Manually create a \"Star Host: Pitch Referral\" task for this deal.\n\n*Deal Link:* https://bookiply.pipedrive.com/deal/{{ $('Process Each Star Host One-by-One').item.json.deal_id }}\n*Person Link:* https://bookiply.pipedrive.com/person/{{ $('Process Each Star Host One-by-One').item.json.person_id }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2304,
+        192
+      ],
+      "id": "sh-corr-0014",
+      "name": "Notify Slack - Activity Creation Failed",
+      "webhookId": "00c59eb9-cb50-44a2-a116-7f34851669ee",
+      "credentials": {
+        "slackApi": {
+          "id": "qRGqKpHyYKNb6Abp",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Daily: Star Host -> Pipedrive  (CORRECTED)\n\n## Summary\nRuns daily at 09:00. Finds accounts that **newly became Star Hosts** (rolling 3-day lookback) and\ncreates a **\"Star Host: Pitch Referral\"** activity on the host's Pipedrive optimisation deal\n(assigned to the deal owner, due in 7 days). Already-handled deals are skipped (dedup); accounts\nwith NO optimisation deal are flagged to Slack instead of being dropped; failures go to #referral-errors.\n\n**Pipeline:** Schedule -> Athena -> parse -> any rows? (watchdog if 0) -> loop per host ->\nhas optimisation deal? (Slack if not) -> get owner -> dedup check -> create -> success check.\n\n**Key design points / fixes vs. the original**\n1. **Rolling 3-day lookback** (Star Host now vs ~3 days ago), not hard-coded CURRENT_DATE - reliably\n   catches every day's new Star Hosts even when a snapshot loads late/incomplete; dedup prevents double-creates.\n2. **Owner fetched live** from Pipedrive; dropped the pipedrive_deal_history join (it duplicated rows).\n3. **Duplicate-activity guard** (skip if the deal already has the activity).\n4. **Fixed success/failure branch**.\n5. **No-deal accounts surfaced:** accounts that became a Star Host but have NO optimisation deal are\n   flagged to Slack (so a deal can be created/linked and the referral pitched manually) instead of\n   being silently dropped by the query.\n6. **Watchdog:** Slack alert if Athena returns 0 candidates for 3 runs in a row.\n\n## What each node does (flow order)\n\n1. **Daily 9AM - Check for New Star Hosts** (Schedule)\n2. **Query Athena - Get New Star Hosts** (Lambda) - accounts that are a Star Host now but were not\n   ~3 days ago, with became-date + Pipedrive person + deal (deal may be empty).\n3. **Parse Athena Results** (Code) - normalises response; 0 rows -> { rowCount: 0 }.\n4. **Any New Star Hosts Found?** (IF rowCount != 0)  true -> Reset Zero-Day Counter -> loop;  false -> Track Zero-Day Streak.\n5. **Reset Zero-Day Counter** (Code) - resets the empty-run counter (static data).\n6. **Track Zero-Day Streak** (Code) - counts consecutive empty runs; emits only past threshold (3).\n7. **Notify Slack - No Candidates** (#referral-errors) - watchdog alert.\n8. **Process Each Star Host One-by-One** (Loop, batch size 1)\n9. **Has Optimisation Deal?** (IF deal_id not empty)  has deal -> Get Deal Owner;  no deal -> Notify Slack - No Optimisation Deal.\n10. **Notify Slack - No Optimisation Deal** (#referral-errors) - flags a Star Host with no deal, then loops on.\n11. **Get Deal Owner** (HTTP GET /deals/{id})  -> on error: Slack\n12. **Extract Deal Owner** (Code) - owner_id from the deal.\n13. **Search for Duplicate Activity** (HTTP GET /deals/{id}/activities)  -> on error: Slack\n14. **Check Dedup: Star Host Pitch Referral or Done Referral Reminder** (Code) - _skip if (Check 1) a \"Star Host: Pitch Referral\" activity already exists on the deal, OR (Check 2) the deal has a DONE \"Referral reminder\" completed within the last 6 months (the \"Referred Apartment(s) Published: Pitch Referral\" subject is exempt; a not-done reminder never blocks).\n15. **Should Create Activity?** (IF _skip === false)  create, else skip + loop.\n16. **Create 'Star Host: Pitch Referral' Activity** (HTTP POST /activities) - subject, type\n    \"Referral reminder\", deal_id, due_date (+7d), note (star-host date + Confluence links), user_id=owner.\n17. **Normalize Pipedrive Response** (Code) -> { success, activity_id, error }.\n18. **Check Activity Creation Success** (IF)  success=false -> Slack; else loop.\n19. **Notify Slack - Activity Creation Failed** (#referral-errors)\n\n## Variables & sources\n| Variable | Source | Table |\n|---|---|---|\n| account_id | account_id | holidu_homes.account_model_history (latest) |\n| became_star_host_date | first day in window the account was a Star Host | holidu_homes.account_model_history |\n| person_id | pipedrive_person_id | holidu_homes.agent_latest |\n| deal_id | optimisation_deal_id (may be EMPTY -> no-deal Slack) | holidu_homes.agent_latest |\n| owner_id | data.owner_id.id (live) | Pipedrive GET /deals/{id} |\n\nQuery filters: is_active_account + is_star_host (now vs ~3 days ago) + pipedrive_person_id IS NOT NULL.\n(The optimisation-deal filter was REMOVED so no-deal accounts surface to Slack instead of being dropped.)\n\n## Tuning\n- Lookback window: `INTERVAL '3' day` in the Athena SQL.\n- Watchdog threshold: `const N = 3` in \"Track Zero-Day Streak\".\n- No-deal alerts are not deduped, so during the 3-day lookback a no-deal account can alert on up to\n  3 consecutive days (rare - very few Star Hosts lack a deal). Easy to add dedup if it gets noisy.\n",
+        "width": 1240,
+        "height": 1780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -1640
+      ],
+      "id": "sh-corr-note",
+      "name": "Workflow Summary"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reset the empty-run counter whenever Athena returns candidates.\nconst sd = $getWorkflowStaticData('global');\nsd.zeroStreak = 0;\nsd.lastNonZero = new Date().toISOString().slice(0, 10);\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        -110
+      ],
+      "id": "sh-corr-0015",
+      "name": "Reset Zero-Day Counter"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Count consecutive runs where Athena returned 0 candidates; emit an item only past the threshold.\nconst sd = $getWorkflowStaticData('global');\nsd.zeroStreak = (sd.zeroStreak || 0) + 1;\nconst N = 3; // alert after this many empty runs in a row\nif (sd.zeroStreak >= N) {\n  return [{ json: { zeroStreak: sd.zeroStreak, threshold: N, lastNonZero: sd.lastNonZero || 'unknown' } }];\n}\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        210
+      ],
+      "id": "sh-corr-0016",
+      "name": "Track Zero-Day Streak"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#referral-errors",
+          "mode": "name"
+        },
+        "text": "=⚠️ *Star Host workflow — no candidates from Athena*\n\nAthena returned *0* Star Host candidates for *{{ $json.zeroStreak }}* run(s) in a row (last non-empty run: {{ $json.lastNonZero }}).\n\nExpected volume is ~50–90 new Star Hosts/day, so this most likely means a problem — e.g. the holidu_homes.account_model_history snapshot not loading, or the Lambda/Athena query failing.\n\n*Action:* check this workflow's latest execution and the snapshot freshness in account_model_history.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        440,
+        240
+      ],
+      "id": "sh-corr-0017",
+      "name": "Notify Slack - No Candidates",
+      "credentials": {
+        "slackApi": {
+          "id": "qRGqKpHyYKNb6Abp",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-deal",
+              "leftValue": "={{ $json.deal_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        410,
+        48
+      ],
+      "id": "sh-corr-0018",
+      "name": "Has Optimisation Deal?"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#referral-errors",
+          "mode": "name"
+        },
+        "text": "=⚠️ *Star Host - No Optimisation Deal*\n\nThis account became a Star Host, but has no optimisation deal in Pipedrive, so no activity could be created.\n\n*Account ID:* {{ $json.account_id }}\n*Person ID:* {{ $json.person_id }}\n*Became Star Host:* {{ $json.became_star_host_date }}\n\n*Action Required:* Create/link an optimisation deal for this account and pitch the referral manually.\n\n*Person Link:* https://bookiply.pipedrive.com/person/{{ $json.person_id }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        410,
+        380
+      ],
+      "id": "sh-corr-0019",
+      "name": "Notify Slack - No Optimisation Deal",
+      "credentials": {
+        "slackApi": {
+          "id": "qRGqKpHyYKNb6Abp",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily 9AM - Check for New Star Hosts": {
+      "main": [
+        [
+          {
+            "node": "Query Athena - Get New Star Hosts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Athena - Get New Star Hosts": {
+      "main": [
+        [
+          {
+            "node": "Parse Athena Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Athena Results": {
+      "main": [
+        [
+          {
+            "node": "Any New Star Hosts Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any New Star Hosts Found?": {
+      "main": [
+        [
+          {
+            "node": "Reset Zero-Day Counter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Track Zero-Day Streak",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Each Star Host One-by-One": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Has Optimisation Deal?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Deal Owner": {
+      "main": [
+        [
+          {
+            "node": "Extract Deal Owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Slack - Activity Creation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Deal Owner": {
+      "main": [
+        [
+          {
+            "node": "Search for Duplicate Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for Duplicate Activity": {
+      "main": [
+        [
+          {
+            "node": "Check Dedup: Star Host Pitch Referral or Done Referral Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Slack - Activity Creation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Dedup: Star Host Pitch Referral or Done Referral Reminder": {
+      "main": [
+        [
+          {
+            "node": "Should Create Activity?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Create Activity?": {
+      "main": [
+        [
+          {
+            "node": "Create 'Star Host: Pitch Referral' Activity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Each Star Host One-by-One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create 'Star Host: Pitch Referral' Activity": {
+      "main": [
+        [
+          {
+            "node": "Normalize Pipedrive Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Pipedrive Response": {
+      "main": [
+        [
+          {
+            "node": "Check Activity Creation Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Activity Creation Success": {
+      "main": [
+        [
+          {
+            "node": "Notify Slack - Activity Creation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Each Star Host One-by-One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Slack - Activity Creation Failed": {
+      "main": [
+        [
+          {
+            "node": "Process Each Star Host One-by-One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset Zero-Day Counter": {
+      "main": [
+        [
+          {
+            "node": "Process Each Star Host One-by-One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Zero-Day Streak": {
+      "main": [
+        [
+          {
+            "node": "Notify Slack - No Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Slack - No Candidates": {
+      "main": [
+        []
+      ]
+    },
+    "Has Optimisation Deal?": {
+      "main": [
+        [
+          {
+            "node": "Get Deal Owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Slack - No Optimisation Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Slack - No Optimisation Deal": {
+      "main": [
+        [
+          {
+            "node": "Process Each Star Host One-by-One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "ipFe3FiNK4bL8tV1"
+  },
+  "versionId": "00000000-0000-0000-0000-00000000c0de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "81081e2a330e5ad848efa713de0b6a1b1a3664f3010f3678950954965142523d"
+  },
+  "id": "starHostCorrected",
+  "tags": []
+}
