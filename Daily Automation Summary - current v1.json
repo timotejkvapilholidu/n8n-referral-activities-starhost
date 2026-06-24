@@ -1,0 +1,698 @@
+{
+  "name": "Daily Automation Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "GGsjBrCjY95jSqq0"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1536,
+        192
+      ],
+      "id": "4b29038c-bb69-46d3-aa5b-d453b2fc7e05",
+      "name": "Check: New Host - 5 Day Checkin",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "wZf4MI29BlmoLnYP"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2256,
+        192
+      ],
+      "id": "9c28964c-8a55-4420-a123-d8c2733948ce",
+      "name": "Check: Invalid KYC Activity",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "hNNNWGazCdnjB4zD"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2496,
+        192
+      ],
+      "id": "6b660f44-f913-4fb7-880e-7426c487e184",
+      "name": "Check: Update Service Tier",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "dQRM3fjaE2ShqkbH"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2736,
+        192
+      ],
+      "id": "1cbc5474-479d-457b-a9b4-b7c92e93f4a6",
+      "name": "Check: Tier Change Activity",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "YHES32QWGIUUjshc"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2976,
+        192
+      ],
+      "id": "97b4b29c-cedd-4707-abdf-57afaedff89d",
+      "name": "Check: Referral Published Apartments",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "aEC9fGduO0cdj6wM"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3216,
+        192
+      ],
+      "id": "a8e1ebe9-2ff2-44ca-85d4-9380c8146e20",
+      "name": "Check: High-Performing Properties",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "u4pjFHtm3q4HDh7t"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3456,
+        192
+      ],
+      "id": "96c0a813-4072-46b3-b3cf-e7e13c937dfe",
+      "name": "Check: Star Host Activity",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "M53IY43SQwMNnX3K"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3696,
+        192
+      ],
+      "id": "5d346a88-f871-4f47-9d65-49e54cae5001",
+      "name": "Check: NPS Promoter Activity",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "2NvE0N3WBOjNwGWj"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3936,
+        192
+      ],
+      "id": "3ee88b3f-7bdb-4b88-bb76-790f7da2fe3d",
+      "name": "Check: Sync Optimisation Deal",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "hQPumtuZxSYG74yV"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4176,
+        192
+      ],
+      "id": "4c8a2e11-8908-498c-8c3b-6073b897c06e",
+      "name": "Check: Sync AM Changes",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "2UGBBYQgfampOiN1"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4416,
+        192
+      ],
+      "id": "8d6dd3fe-887e-43a1-a9a6-40cf789049e7",
+      "name": "Check: Fast NLP - Ask for Referrals",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 11 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1312,
+        192
+      ],
+      "id": "2697a582-0cca-4a15-8ed9-d68b9e5b747e",
+      "name": "Daily 11 AM (Mon-Fri)1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowResults = [\n  { name: \"Daily: New Host - 5 Day Checkin (Athena → Pipedrive)\", data: $(\"Check: New Host - 5 Day Checkin\").first().json.data || [] },\n  { name: \"Daily: Create Activity for Invalid KYC (Athena → Pipedrive)\", data: $(\"Check: Invalid KYC Activity\").first().json.data || [] },\n  { name: \"Daily: Update Service Tier for Tier Changes (Athena → Pipedrive)\", data: $(\"Check: Update Service Tier\").first().json.data || [] },\n  { name: \"Daily: Create Activity for Tier Changes (Athena → Pipedrive)\", data: $(\"Check: Tier Change Activity\").first().json.data || [] },\n  { name: \"Daily: Create Pipedrive Activity Referral Published Apartments (Athena -> Pipedrive)\", data: $(\"Check: Referral Published Apartments\").first().json.data || [] },\n  { name: \"Daily: Create Pipedrive Activity for High-Performing Properties (Athena -> Pipedrive)\", data: $(\"Check: High-Performing Properties\").first().json.data || [] },\n  { name: \"Daily: Create Pipedrive Activity when Star Host (Athena -> Pipedrive)\", data: $(\"Check: Star Host Activity\").first().json.data || [] },\n  { name: \"Daily: Create Pipedrive Activity when NPS Promoter (Athena -> Pipedrive)\", data: $(\"Check: NPS Promoter Activity\").first().json.data || [] },\n  { name: \"Daily: Sync Optimisation Deal Status & Value (Athena → Pipedrive)\", data: $(\"Check: Sync Optimisation Deal\").first().json.data || [] },\n  { name: \"Daily: Sync AM Changes (Backoffice → Pipedrive Deal Owner)\", data: $(\"Check: Sync AM Changes\").first().json.data || [] },\n  { name: \"Daily: Fast NLP - Ask for Referrals (daily, Athena → Pipedrive)\", data: $(\"Check: Fast NLP - Ask for Referrals\").first().json.data || [] }\n];\n\nconst now = new Date();\nconst todayStart = new Date();\ntodayStart.setHours(0, 0, 0, 0);\n\nconst rows = workflowResults.map(({ name, data }) => {\n  const todayExecs = data.filter(e => new Date(e.startedAt) >= todayStart);\n  let status = 'not_run';\n  for (const exec of todayExecs) {\n    if (exec.status === 'error') { status = 'error'; break; }\n    if (exec.status === 'success') status = 'success';\n  }\n  let emoji, label;\n  if (status === 'error') { emoji = '❌'; label = 'Executed with error'; }\n  else if (status === 'success') { emoji = '✅'; label = 'Successfully executed'; }\n  else { emoji = '⚫'; label = 'Did not run'; }\n  return `${emoji} *${name}*\\n    _${label}_`;\n});\n\nconst statuses = workflowResults.map(({ data }) => {\n  const todayExecs = data.filter(e => new Date(e.startedAt) >= todayStart);\n  for (const exec of todayExecs) {\n    if (exec.status === 'error') return 'error';\n    if (exec.status === 'success') return 'success';\n  }\n  return 'not_run';\n});\n\nconst successCount = statuses.filter(s => s === 'success').length;\nconst errorCount = statuses.filter(s => s === 'error').length;\nconst notRunCount = statuses.filter(s => s === 'not_run').length;\n\nconst dateStr = now.toLocaleDateString('en-GB', {\n  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',\n  timeZone: 'Europe/Berlin'\n});\n\nconst summaryLine = `✅ ${successCount} succeeded   ❌ ${errorCount} errored   ⚫ ${notRunCount} did not run`;\nconst message = `📊 *Daily Automation Summary — ${dateStr}*\\n${summaryLine}\\n\\n${rows.join('\\n\\n')}`;\n\nreturn [{ json: { message } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4656,
+        192
+      ],
+      "id": "242288d8-db51-49bd-bea7-0b36e80ae3cd",
+      "name": "Build Summary Message1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#n8n-errors",
+          "mode": "name"
+        },
+        "text": "={{ $json.message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4896,
+        192
+      ],
+      "id": "565d2334-7429-4884-bab6-20b80dd621d0",
+      "name": "Post Summary to Slack1",
+      "webhookId": "1b39aae7-b317-483f-b4d4-58a93aa2bd02",
+      "credentials": {
+        "slackApi": {
+          "id": "qRGqKpHyYKNb6Abp",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "CKVh9sNL6JQqMXVH"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2016,
+        192
+      ],
+      "id": "25b9976f-8214-42e1-8836-b70567c104f9",
+      "name": "Graduation Flow - Day 17 Trigger (21 Day Follow-up) (daily - Athena + Pipedrive)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-revops.holidu.cloud/api/v1/executions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workflowId",
+              "value": "lVN1syxsJnCZPRFs"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1776,
+        192
+      ],
+      "id": "ed0ae69f-2233-44f4-abac-e0434f90ad03",
+      "name": "Graduation Flow - Day 2 Trigger: 5 Day Checkin (daily; Athena → Pipedrive)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ysFVFnro8SC3jMFl",
+          "name": "n8n API - N8N-DAILY-SUMMARY"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check: New Host - 5 Day Checkin": {
+      "main": [
+        [
+          {
+            "node": "Graduation Flow - Day 2 Trigger: 5 Day Checkin (daily; Athena → Pipedrive)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Invalid KYC Activity": {
+      "main": [
+        [
+          {
+            "node": "Check: Update Service Tier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Update Service Tier": {
+      "main": [
+        [
+          {
+            "node": "Check: Tier Change Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Tier Change Activity": {
+      "main": [
+        [
+          {
+            "node": "Check: Referral Published Apartments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Referral Published Apartments": {
+      "main": [
+        [
+          {
+            "node": "Check: High-Performing Properties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: High-Performing Properties": {
+      "main": [
+        [
+          {
+            "node": "Check: Star Host Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Star Host Activity": {
+      "main": [
+        [
+          {
+            "node": "Check: NPS Promoter Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: NPS Promoter Activity": {
+      "main": [
+        [
+          {
+            "node": "Check: Sync Optimisation Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Sync Optimisation Deal": {
+      "main": [
+        [
+          {
+            "node": "Check: Sync AM Changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Sync AM Changes": {
+      "main": [
+        [
+          {
+            "node": "Check: Fast NLP - Ask for Referrals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Fast NLP - Ask for Referrals": {
+      "main": [
+        [
+          {
+            "node": "Build Summary Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 11 AM (Mon-Fri)1": {
+      "main": [
+        [
+          {
+            "node": "Check: New Host - 5 Day Checkin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary Message1": {
+      "main": [
+        [
+          {
+            "node": "Post Summary to Slack1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Graduation Flow - Day 2 Trigger: 5 Day Checkin (daily; Athena → Pipedrive)": {
+      "main": [
+        [
+          {
+            "node": "Graduation Flow - Day 17 Trigger (21 Day Follow-up) (daily - Athena + Pipedrive)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Graduation Flow - Day 17 Trigger (21 Day Follow-up) (daily - Athena + Pipedrive)": {
+      "main": [
+        [
+          {
+            "node": "Check: Invalid KYC Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3a74efef-8a1d-4f55-909f-958336b938bd",
+  "meta": {
+    "instanceId": "81081e2a330e5ad848efa713de0b6a1b1a3664f3010f3678950954965142523d"
+  },
+  "id": "QukwzJdVxU2CRoLL",
+  "tags": []
+}
